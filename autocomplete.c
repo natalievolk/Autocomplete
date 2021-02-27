@@ -59,27 +59,20 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
         fgets(line, sizeof(line), fp);  //read in at most sizeof(line) characters
                                         //(including '\0') into line.
         
+        /*
         int weight = get_weight(line);
         char *term = get_term(line);
         printf("%d %s\n", weight, term);
-
-        /*char start = *line;
-        printf("%s\n", start);
         */
-        /*
-        while(*line == ' ') {
-            (*line)++;
-            printf("%s", "hi");
-        }
-        printf("\n");
-        */
-        
-        
 
-        //printf("%ld\n", &line);
-        //printf("%c\n", line[0]);
-        // *(*terms + sizeof(struct term)*i) = 
-    }    
+
+        // this appears to successfully set term and weight :))
+        strcpy(((*terms + sizeof(struct term)*i)->term), get_term(line));
+        (*terms + sizeof(struct term)*i)->weight = get_weight(line);
+
+        printf("%f\n", (*terms + sizeof(struct term)*i)->weight);
+        printf("%s\n", ((*terms + sizeof(struct term)*i)->term));
+    }
 }
 
 int lowest_match(struct term *terms, int nterms, char *substr) {
