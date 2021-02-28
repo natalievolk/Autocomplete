@@ -53,8 +53,8 @@ int compare(const void *a, const void *b) {
     struct term *a_struct = (struct term *)a;
     struct term *b_struct = (struct term *)b;
 
-    printf("a_struct %s\n", a_struct->term);
-    printf("b_struct %s\n", b_struct->term);
+    //printf("a_struct %s\n", a_struct->term);
+    //printf("b_struct %s\n", b_struct->term);
 
     return strcmp(a_struct->term, b_struct->term);
 
@@ -76,19 +76,25 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
     for(int i = 0; i < *pnterms; i++){
         fgets(line, sizeof(line), fp);  //read in at most sizeof(line) characters
                                         //(including '\0') into line.
-        
-        // this appears to successfully set term and weight :))
-        strcpy(((*terms + sizeof(struct term)*i)->term), get_term(line));
-        (*terms + sizeof(struct term)*i)->weight = get_weight(line);
 
-        printf("%f %s\n", (*terms + sizeof(struct term)*i)->weight, ((*terms + sizeof(struct term)*i)->term));
+        // this appears to successfully set term and weight :))
+        //strcpy(((*terms + sizeof(struct term)*i)->term), get_term(line));
+        //(*terms + sizeof(struct term)*i)->weight = get_weight(line);
+        //strcpy(((*terms + i)->term), get_term(line));
+        //(*terms + i)->weight = get_weight(line);
+        (*terms)[i].weight = get_weight(line);
+        strcpy(((*terms)[i].term), get_term(line));
+        
+
+        //printf("%f %s\n", (*terms + sizeof(struct term)*i)->weight, ((*terms + sizeof(struct term)*i)->term));
+        //printf("%f %s\n", (*terms)[i].weight, (*terms)[i].term);
     }
-    /*
-    qsort(*terms, 10, sizeof(struct term), compare);
-    for(int i=0; i<10; i++) {
-        printf("%f %s\n", (*terms + sizeof(struct term)*i)->weight, ((*terms + sizeof(struct term)*i)->term));
+    
+    qsort(*terms, *pnterms, sizeof(struct term), compare);
+    for(int i=0; i<*pnterms; i++) {
+        printf("%d %f %s\n", i, (*terms)[i].weight, (*terms)[i].term);;
     }
-    */
+    
 }
 
 int lowest_match(struct term *terms, int nterms, char *substr) {
@@ -100,7 +106,8 @@ int lowest_match(struct term *terms, int nterms, char *substr) {
     while(high>=low) {
         i = (high+low)/2;
 
-        int compare = strncmp((terms + sizeof(struct term)*i)->term, substr, len);
+        //int compare = strncmp((terms + i)->term, substr, len);
+        int compare = strncmp(terms[i].term, substr, len);
         if (compare > 0) {
             high = i-1;
         }
@@ -108,7 +115,7 @@ int lowest_match(struct term *terms, int nterms, char *substr) {
             low = i+1;
         }
         else if (compare == 0) {
-            if (i == 0  ||  strncmp((terms + sizeof(struct term)*(i-1))->term, substr, len) != 0) {
+            if (i == 0  ||  strncmp(terms[i-1].term, substr, len) != 0) {
                 return i;
             }
             else {
@@ -128,7 +135,8 @@ int highest_match(struct term *terms, int nterms, char *substr) {
     while(high>=low) {
         i = (high+low)/2;
 
-        int compare = strncmp((terms + sizeof(struct term)*i)->term, substr, len);
+        //int compare = strncmp((terms + i)->term, substr, len);
+        int compare = strncmp(terms[i].term, substr, len);
         if (compare > 0) {
             high = i-1;
         }
@@ -136,7 +144,7 @@ int highest_match(struct term *terms, int nterms, char *substr) {
             low = i+1;
         }
         else if (compare == 0) {
-            if (i == nterms-1  ||  strncmp((terms + sizeof(struct term)*(i+1))->term, substr, len) != 0) {
+            if (i == nterms-1  ||  strncmp(terms[i+1].term, substr, len) != 0) {
                 return i;
             }
             else {
@@ -150,5 +158,9 @@ void autocomplete(struct term **answer, int *n_answer, struct term *terms, int n
     int ans_high = highest_match(terms, nterms, substr);
     int ans_low = lowest_match(terms, nterms, substr);
 
-    *n_answer = ans_high - ans_low + 1;
+    if (ans_high == -1) {
+        *n_answer = 0;
+    } else {
+        *n_answer = ans_high - ans_low + 1;
+    }
 }
