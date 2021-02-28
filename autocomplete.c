@@ -4,12 +4,10 @@
 #include <ctype.h>
 #include "autocomplete.h"
 
-// look at piazza @240... i should be able to do terms[i]!!
 
 int get_weight(char *line) {
     while(*line == ' ') {
         line++;
-        //printf("%s", "hi");
     }
 
     // get weight
@@ -22,6 +20,8 @@ int get_weight(char *line) {
     return weight;
 }
 
+// this function could definitely be optimized lol
+//  (maybe by combining with get_weight? or just leave it)
 char *get_term(char *line) {
     // moves through initial whitespace
     while(isspace(*line)) {
@@ -48,7 +48,7 @@ char *get_term(char *line) {
     return term;
 }
 
-int compare(const void *a, const void *b) {    
+int compare_term(const void *a, const void *b) {    
     
     struct term *a_struct = (struct term *)a;
     struct term *b_struct = (struct term *)b;
@@ -57,11 +57,6 @@ int compare(const void *a, const void *b) {
     //printf("b_struct %s\n", b_struct->term);
 
     return strcmp(a_struct->term, b_struct->term);
-
-
-    //return 0;
-
-    //strcmp((*terms)->term, ((*terms + sizeof(struct term)*1)->term))
 }
 
 void read_in_terms(struct term **terms, int *pnterms, char *filename) {
@@ -77,20 +72,13 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
         fgets(line, sizeof(line), fp);  //read in at most sizeof(line) characters
                                         //(including '\0') into line.
 
-        // this appears to successfully set term and weight :))
-        //strcpy(((*terms + sizeof(struct term)*i)->term), get_term(line));
-        //(*terms + sizeof(struct term)*i)->weight = get_weight(line);
         //strcpy(((*terms + i)->term), get_term(line));
         //(*terms + i)->weight = get_weight(line);
         (*terms)[i].weight = get_weight(line);
         strcpy(((*terms)[i].term), get_term(line));
-        
-
-        //printf("%f %s\n", (*terms + sizeof(struct term)*i)->weight, ((*terms + sizeof(struct term)*i)->term));
-        //printf("%f %s\n", (*terms)[i].weight, (*terms)[i].term);
     }
     
-    qsort(*terms, *pnterms, sizeof(struct term), compare);
+    qsort(*terms, *pnterms, sizeof(struct term), compare_term);
     for(int i=0; i<*pnterms; i++) {
         printf("%d %f %s\n", i, (*terms)[i].weight, (*terms)[i].term);;
     }
@@ -154,6 +142,15 @@ int highest_match(struct term *terms, int nterms, char *substr) {
     }
     return -1;
 }
+
+int compare_weight(const void *a, const void *b) {    
+    
+    struct term *a_struct = (struct term *)a;
+    struct term *b_struct = (struct term *)b;
+
+    return (a_struct->weight) - (b_struct->weight);
+}
+
 void autocomplete(struct term **answer, int *n_answer, struct term *terms, int nterms, char *substr) {
     int ans_high = highest_match(terms, nterms, substr);
     int ans_low = lowest_match(terms, nterms, substr);
@@ -162,5 +159,19 @@ void autocomplete(struct term **answer, int *n_answer, struct term *terms, int n
         *n_answer = 0;
     } else {
         *n_answer = ans_high - ans_low + 1;
-    }
+        *answer = (struct term*)malloc(sizeof(struct term)*(*n_answer));
+
+        int k = 0;
+        for (int i = ans_low; i <= ans_high; i++) {
+            (*answer)[k].weight = terms[i].weight;
+            strcpy((*answer)[k].term, terms[i].term);
+            k++;
+        }
+
+        qsort(*answer, *n_answer, sizeof(struct term), compare_weight);
+        
+        for (int i = 0; i < *n_answer; i++) {
+            printf("%d %f %s\n", i, (*answer)[i].weight, (*answer)[i].term);
+        }
+    }    
 }
