@@ -49,7 +49,7 @@ char *get_term(char *line) {
 }
 
 int compare(const void *a, const void *b) {    
-    /*
+    
     struct term *a_struct = (struct term *)a;
     struct term *b_struct = (struct term *)b;
 
@@ -57,9 +57,7 @@ int compare(const void *a, const void *b) {
     printf("b_struct %s\n", b_struct->term);
 
     return strcmp(a_struct->term, b_struct->term);
-    */
-    
-    return 4;
+
 
     //return 0;
 
@@ -85,7 +83,12 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
 
         printf("%f %s\n", (*terms + sizeof(struct term)*i)->weight, ((*terms + sizeof(struct term)*i)->term));
     }
-    //qsort(*terms, 3, sizeof(struct term), compare);
+    /*
+    qsort(*terms, 10, sizeof(struct term), compare);
+    for(int i=0; i<10; i++) {
+        printf("%f %s\n", (*terms + sizeof(struct term)*i)->weight, ((*terms + sizeof(struct term)*i)->term));
+    }
+    */
 }
 
 int lowest_match(struct term *terms, int nterms, char *substr) {
@@ -144,5 +147,8 @@ int highest_match(struct term *terms, int nterms, char *substr) {
     return -1;
 }
 void autocomplete(struct term **answer, int *n_answer, struct term *terms, int nterms, char *substr) {
-    int a = 0;
+    int ans_high = highest_match(terms, nterms, substr);
+    int ans_low = lowest_match(terms, nterms, substr);
+
+    *n_answer = ans_high - ans_low + 1;
 }
