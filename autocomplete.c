@@ -17,6 +17,16 @@ int get_weight(char *line) {
         weight = weight + (*line-'0');
         line++;
     }
+    if (*line == '.') {
+        line++;
+        double mult = 0.1;
+        while(isdigit(*line)) {
+            //weight = weight*10;
+            weight = weight + ((*line-'0') * mult);
+            line++;
+            mult = mult*0.1;
+        }
+    }
     return weight;
 }
 
@@ -28,7 +38,7 @@ char *get_term(char *line) {
         line++;
     }
     // moves through weight number
-    while(isdigit(*line)) {
+    while(isdigit(*line) || (*line == '.')) {
         line++;
     }
     // moves through whitespace between weight and term
@@ -64,7 +74,7 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
     FILE *fp = fopen(filename, "r");
 
     *pnterms = atol(fgets(line, sizeof(line), fp)); // store number of terms
-    printf("%d\n", *pnterms);
+    //printf("%d\n", *pnterms);
 
     *terms = (struct term*)malloc(sizeof(struct term)*(*pnterms));
 
@@ -77,10 +87,11 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
         (*terms)[i].weight = get_weight(line);
         strcpy(((*terms)[i].term), get_term(line));
     }
+    fclose(fp);
     
     qsort(*terms, *pnterms, sizeof(struct term), compare_term);
     for(int i=0; i<*pnterms; i++) {
-        printf("%d %f %s\n", i, (*terms)[i].weight, (*terms)[i].term);;
+        //printf("%d %f %s\n", i, (*terms)[i].weight, (*terms)[i].term);;
     }
     
 }
@@ -148,7 +159,7 @@ int compare_weight(const void *a, const void *b) {
     struct term *a_struct = (struct term *)a;
     struct term *b_struct = (struct term *)b;
 
-    return (a_struct->weight) - (b_struct->weight);
+    return (b_struct->weight) - (a_struct->weight);
 }
 
 void autocomplete(struct term **answer, int *n_answer, struct term *terms, int nterms, char *substr) {
@@ -169,9 +180,9 @@ void autocomplete(struct term **answer, int *n_answer, struct term *terms, int n
         }
 
         qsort(*answer, *n_answer, sizeof(struct term), compare_weight);
-        
+
         for (int i = 0; i < *n_answer; i++) {
-            printf("%d %f %s\n", i, (*answer)[i].weight, (*answer)[i].term);
+            //printf("%d %f %s\n", i, (*answer)[i].weight, (*answer)[i].term);
         }
     }    
 }
