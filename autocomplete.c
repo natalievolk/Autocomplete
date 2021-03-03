@@ -5,13 +5,13 @@
 #include "autocomplete.h"
 
 
-int get_weight(char *line) {
+double get_weight(char *line) {
     while(*line == ' ') {
         line++;
     }
 
     // get weight
-    int weight = 0;
+    double weight = 0;
     while(isdigit(*line)) {
         weight = weight*10;
         weight = weight + (*line-'0');
@@ -23,6 +23,7 @@ int get_weight(char *line) {
         while(isdigit(*line)) {
             //weight = weight*10;
             weight = weight + ((*line-'0') * mult);
+            //printf("weight %f\n", weight);
             line++;
             mult = mult*0.1;
         }
@@ -84,6 +85,7 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
 
         //strcpy(((*terms + i)->term), get_term(line));
         //(*terms + i)->weight = get_weight(line);
+        //printf("weight: %f", get_weight(line));
         (*terms)[i].weight = get_weight(line);
         strcpy(((*terms)[i].term), get_term(line));
     }
@@ -158,8 +160,16 @@ int compare_weight(const void *a, const void *b) {
     
     struct term *a_struct = (struct term *)a;
     struct term *b_struct = (struct term *)b;
-
+    /*
     return (b_struct->weight) - (a_struct->weight);
+    */
+    if ((b_struct->weight) - (a_struct->weight) > 0) {
+        return 5;
+    } else if ((b_struct->weight) - (a_struct->weight) < 0) {
+        return -3;
+    } else {
+        return 0;
+    }
 }
 
 void autocomplete(struct term **answer, int *n_answer, struct term *terms, int nterms, char *substr) {

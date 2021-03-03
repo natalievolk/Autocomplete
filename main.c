@@ -8,18 +8,18 @@ int main(void)
     int nterms;
     read_in_terms(&terms, &nterms, "praxis334.txt");
     
-    printf("lowest match %d\n", lowest_match(terms, nterms, "c"));
+    printf("lowest match %d\n", lowest_match(terms, nterms, "re"));
 
-    printf("highest match %d\n", highest_match(terms, nterms, "c"));
+    printf("highest match %d\n", highest_match(terms, nterms, "re"));
     
     struct term *answer;
     int n_answer;
-    autocomplete(&answer, &n_answer, terms, nterms, "c");
+    autocomplete(&answer, &n_answer, terms, nterms, "re");
 
     printf("%d\n", n_answer);
 
     for (int i = 0; i < n_answer; i++) {
-       // printf("%d %f %s\n", i, (answer)[i].weight, (answer)[i].term);
+       printf("%d %f %s\n", i, (answer)[i].weight, (answer)[i].term);
     }
     
     //free allocated blocks here -- not required for the project, but good practice
