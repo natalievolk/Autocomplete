@@ -17,13 +17,12 @@ double get_weight(char *line) {
         weight = weight + (*line-'0');
         line++;
     }
+    // add decimal portion to weight if applicable
     if (*line == '.') {
         line++;
         double mult = 0.1;
         while(isdigit(*line)) {
-            //weight = weight*10;
             weight = weight + ((*line-'0') * mult);
-            //printf("weight %f\n", weight);
             line++;
             mult = mult*0.1;
         }
@@ -60,13 +59,11 @@ char *get_term(char *line) {
 }
 
 int compare_term(const void *a, const void *b) {    
-    
+    // cast to struct term
     struct term *a_struct = (struct term *)a;
     struct term *b_struct = (struct term *)b;
 
-    //printf("a_struct %s\n", a_struct->term);
-    //printf("b_struct %s\n", b_struct->term);
-
+    // return string comparison of terms
     return strcmp(a_struct->term, b_struct->term);
 }
 
@@ -74,8 +71,7 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
     char line[200];     // assuming terms not longer than 200
     FILE *fp = fopen(filename, "r");
 
-    *pnterms = atol(fgets(line, sizeof(line), fp)); // store number of terms
-    //printf("%d\n", *pnterms);
+    *pnterms = atol(fgets(line, sizeof(line), fp)); // store number of terms in file
 
     *terms = (struct term*)malloc(sizeof(struct term)*(*pnterms));
 
@@ -83,21 +79,17 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
         fgets(line, sizeof(line), fp);  //read in at most sizeof(line) characters
                                         //(including '\0') into line.
 
-        //strcpy(((*terms + i)->term), get_term(line));
-        //(*terms + i)->weight = get_weight(line);
-        //printf("weight: %f", get_weight(line));
+
+        // assign weight and term from file input to memory block
         (*terms)[i].weight = get_weight(line);
         strcpy(((*terms)[i].term), get_term(line));
     }
-    fclose(fp);
+    fclose(fp);     // close file
     
-    qsort(*terms, *pnterms, sizeof(struct term), compare_term);
-    for(int i=0; i<*pnterms; i++) {
-        //printf("%d %f %s\n", i, (*terms)[i].weight, (*terms)[i].term);;
-    }
-    
+    qsort(*terms, *pnterms, sizeof(struct term), compare_term);     // quicksort    
 }
 
+// binary search to find lowest match
 int lowest_match(struct term *terms, int nterms, char *substr) {
     int low = 0;
     int high = nterms-1;
@@ -105,28 +97,26 @@ int lowest_match(struct term *terms, int nterms, char *substr) {
     int i;
 
     while(high>=low) {
-        i = (high+low)/2;
+        i = (high+low)/2;   // middle index to start search from
 
-        //int compare = strncmp((terms + i)->term, substr, len);
-        int compare = strncmp(terms[i].term, substr, len);
+        //int compare = strncmp((terms + i)->term, substr, len);    // equivalent to below line
+        int compare = strncmp(terms[i].term, substr, len);  // only comparing length of substr to each term
         if (compare > 0) {
             high = i-1;
-        }
-        else if (compare < 0) {
+        } else if (compare < 0) {
             low = i+1;
-        }
-        else if (compare == 0) {
+        } else if (compare == 0) {
             if (i == 0  ||  strncmp(terms[i-1].term, substr, len) != 0) {
                 return i;
-            }
-            else {
+            } else {
                 high = i-1;
             }
         }
     }
-    return -1;
+    return -1;      // returns -1 if no matches are found
 }
 
+// binary search to find highest match
 int highest_match(struct term *terms, int nterms, char *substr) {
     int low = 0;
     int high = nterms-1;
@@ -153,22 +143,20 @@ int highest_match(struct term *terms, int nterms, char *substr) {
             }
         }
     }
-    return -1;
+    return -1;      // returns -1 if no matches were found
 }
 
+// function to use for weight qsort
 int compare_weight(const void *a, const void *b) {    
-    
     struct term *a_struct = (struct term *)a;
     struct term *b_struct = (struct term *)b;
-    /*
-    return (b_struct->weight) - (a_struct->weight);
-    */
+ 
     if ((b_struct->weight) - (a_struct->weight) > 0) {
-        return 5;
+        return 5;       // just needs to return a positive number
     } else if ((b_struct->weight) - (a_struct->weight) < 0) {
-        return -3;
+        return -3;      // can return any negative number
     } else {
-        return 0;
+        return 0;       // if weights are same return zero
     }
 }
 
@@ -177,22 +165,20 @@ void autocomplete(struct term **answer, int *n_answer, struct term *terms, int n
     int ans_low = lowest_match(terms, nterms, substr);
 
     if (ans_high == -1) {
-        *n_answer = 0;
+        *n_answer = 0;      // if there are no matches, n_answers is set to zero
     } else {
-        *n_answer = ans_high - ans_low + 1;
-        *answer = (struct term*)malloc(sizeof(struct term)*(*n_answer));
-
+        *n_answer = ans_high - ans_low + 1; // otherwise, set to difference in indices between highest and lowest answer
+        
+        // add all answers to memory block
         int k = 0;
+        *answer = (struct term*)malloc(sizeof(struct term)*(*n_answer));
         for (int i = ans_low; i <= ans_high; i++) {
             (*answer)[k].weight = terms[i].weight;
             strcpy((*answer)[k].term, terms[i].term);
             k++;
         }
 
+        // qsort by decreasing weight
         qsort(*answer, *n_answer, sizeof(struct term), compare_weight);
-
-        for (int i = 0; i < *n_answer; i++) {
-            //printf("%d %f %s\n", i, (*answer)[i].weight, (*answer)[i].term);
-        }
     }    
 }
