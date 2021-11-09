@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include "autocomplete.h"
 
-
+// get the weight of the term
 double get_weight(char *line) {
     while(*line == ' ') {
         line++;
@@ -30,8 +30,7 @@ double get_weight(char *line) {
     return weight;
 }
 
-// this function could definitely be optimized lol
-//  (maybe by combining with get_weight? or just leave it)
+// get the term
 char *get_term(char *line) {
     // moves through initial whitespace
     while(isspace(*line)) {
@@ -58,6 +57,7 @@ char *get_term(char *line) {
     return term;
 }
 
+// compare the lexicographic comparison of two terms
 int compare_term(const void *a, const void *b) {    
     // cast to struct term
     struct term *a_struct = (struct term *)a;
@@ -67,6 +67,7 @@ int compare_term(const void *a, const void *b) {
     return strcmp(a_struct->term, b_struct->term);
 }
 
+// read in terms from text file
 void read_in_terms(struct term **terms, int *pnterms, char *filename) {
     char line[200];     // assuming terms not longer than 200
     FILE *fp = fopen(filename, "r");
@@ -86,7 +87,11 @@ void read_in_terms(struct term **terms, int *pnterms, char *filename) {
     }
     fclose(fp);     // close file
     
-    qsort(*terms, *pnterms, sizeof(struct term), compare_term);     // quicksort    
+    qsort(*terms, *pnterms, sizeof(struct term), compare_term);     // quicksort
+
+    for (int i = 9990; i < *pnterms; i++) {
+       printf("%d %f %s\n", i, (*terms)[i].weight, (*terms)[i].term);
+    }
 }
 
 // binary search to find lowest match
@@ -160,6 +165,7 @@ int compare_weight(const void *a, const void *b) {
     }
 }
 
+// ranks word suggestions in terms of highest to lowest weight
 void autocomplete(struct term **answer, int *n_answer, struct term *terms, int nterms, char *substr) {
     int ans_high = highest_match(terms, nterms, substr);
     int ans_low = lowest_match(terms, nterms, substr);
